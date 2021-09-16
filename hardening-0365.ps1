@@ -1,6 +1,7 @@
 # Securiza Office 365 Enterprise
 # Medidas de protección contra ransomware
 # Aplica a Word y Excel
+# Author: J. Vicente Serrano
 
 function isAdmin{
     return [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-32-544")
