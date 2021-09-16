@@ -75,7 +75,7 @@ foreach($key in $SIDS.Keys){
     }
 
     # Hacer backups. Si un backup falla no sigue
-    Write-host -ForegroundColor Green "Creando Backup de la configuración de Office de $UserName"
+    Write-host -ForegroundColor Green "Backing up common Office settings on $UserName"
     reg export HKEY_USERS\$SID\Software\Microsoft\Office\Common C:\BackupOfficeConfig\$($Timestamp)_commonsecurity_$UserName.reg > $null
     if(!$?){
         continue
@@ -96,7 +96,7 @@ foreach($key in $SIDS.Keys){
         continue
     }
 
-    Write-host -ForegroundColor Green "AApplying the security patch on $UserName"
+    Write-host -ForegroundColor Green "Applying the security patch on $UserName"
 
     # Comun
     $RegKey = "Registry::HKEY_USERS\$Sid\SOFTWARE\Microsoft\Office\Common\Security"
