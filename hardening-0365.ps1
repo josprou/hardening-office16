@@ -27,7 +27,6 @@ function Get-SIDS{
 }
 
 $Timestamp = Get-Date -Format 'yyyyMMddhhmmss'
-
 $SIDS = Get-SIDS
 
 # Crea directorio de backup del registro antes de la intervención
