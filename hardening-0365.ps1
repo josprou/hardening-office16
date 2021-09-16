@@ -31,12 +31,12 @@ $Timestamp = Get-Date -Format 'yyyyMMddhhmmss'
 $SIDS = Get-SIDS
 
 # Crea directorio de backup del registro antes de la intervención
-Write-host -ForegroundColor Green 'Creando Backup de la configuración comun de Office'
+Write-host -ForegroundColor Green 'Backing up common Office settings'
 if(-not (Test-Path C:\BackupOfficeConfig)){
     mkdir C:\BackupOfficeConfig > $nul
 }
 if(!$?){
-    Write-host -ForegroundColor Red '[*] Error al crear el directorio de Backup'
+    Write-host -ForegroundColor Red '[*] Error creating Backup directory'
     exit
 }
 
@@ -96,7 +96,7 @@ foreach($key in $SIDS.Keys){
         continue
     }
 
-    Write-host -ForegroundColor Green "Aplicando el parche de seguridad en $UserName"
+    Write-host -ForegroundColor Green "AApplying the security patch on $UserName"
 
     # Comun
     $RegKey = "Registry::HKEY_USERS\$Sid\SOFTWARE\Microsoft\Office\Common\Security"
@@ -251,5 +251,5 @@ foreach($key in $SIDS.Keys){
     $RegKey = "Registry::HKEY_USERS\$Sid\Software\Microsoft\Office\16.0\Common\Identity"
     New-ItemProperty -Path $RegKey -Name 'TCSettingBlockFBAPrompts' -Value '1' -PropertyType DWORD -Force | Out-Null 
 
-    Write-Host -ForegroundColor Green "Word y Excel han sido securizados en $UserName"
+    Write-Host -ForegroundColor Green "Word and Excel have been patched in $UserName"
 }
