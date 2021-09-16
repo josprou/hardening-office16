@@ -1,6 +1,5 @@
 # Securiza Office 365 Enterprise
 # Medidas de protección contra ransomware
-# Aplica a Word y Excel
 # Author: J. Vicente Serrano
 
 function isAdmin{
@@ -27,17 +26,17 @@ function Get-SIDS{
     return $Sids
 }
 
-$Timestamp = Get-Date -Format "yyyyMMddhhmmss"
+$Timestamp = Get-Date -Format 'yyyyMMddhhmmss'
 
 $SIDS = Get-SIDS
 
 # Crea directorio de backup del registro antes de la intervención
-Write-host -ForegroundColor Green "Creando Backup de la configuración comun de Office"
+Write-host -ForegroundColor Green 'Creando Backup de la configuración comun de Office'
 if(-not (Test-Path C:\BackupOfficeConfig)){
     mkdir C:\BackupOfficeConfig > $nul
 }
 if(!$?){
-    Write-host -ForegroundColor Red "[*] Error al crear el directorio de Backup"
+    Write-host -ForegroundColor Red '[*] Error al crear el directorio de Backup'
     exit
 }
 
@@ -48,11 +47,11 @@ if(!$?){
 }
 
 #Politicas de Office en el ámbito de la maquina la máquina
-$RegKey = "HKLM:\Software\Policies\Microsoft\Office"
+$RegKey = 'HKLM:\Software\Policies\Microsoft\Office'
 New-Item -Path $RegKey -Force | Out-Null
-$RegKey = "HKLM:\Software\Policies\Microsoft\Office\16.0"
+$RegKey = 'HKLM:\Software\Policies\Microsoft\Office\16.0'
 New-Item -Path $RegKey -Force | Out-Null
-$RegKey = "HKLM:\Software\Policies\Microsoft\Office\16.0\Common"
+$RegKey = 'HKLM:\Software\Policies\Microsoft\Office\16.0\Common'
 New-Item -Path $RegKey -Force | Out-Null
 # Deshabilita VBA para las aplicaciones de Office 
 Set-ItemProperty $RegKey -Name 'VBAOFF' -Value '1' -Force | Out-Null
