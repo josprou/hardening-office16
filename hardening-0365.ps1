@@ -1,5 +1,6 @@
+# Medidas de protección contra ransomware 
 # Securiza Office 365 Enterprise
-# Medidas de protección contra ransomware
+# Deshabilita macros y tipos de formatos antiguos
 # Author: J. Vicente Serrano
 
 function isAdmin{
@@ -11,7 +12,7 @@ if(-not (isAdmin)){
     return
 }
 
-function Get-SIDS{
+function Get-SIDs{
     $Sids=@{}
     $UserNames = (Get-ChildItem Registry::HKEY_USERS) 2> $null
     foreach($Username in $UserNames){  
@@ -27,12 +28,11 @@ function Get-SIDS{
 }
 
 $Timestamp = Get-Date -Format 'yyyyMMddhhmmss'
-$SIDS = Get-SIDS
 
-# Crea directorio de backup del registro antes de la intervención
+# Crea directorio de backup del registro antes de la intervencion
 Write-host -ForegroundColor Green 'Backing up common Office settings'
 if(-not (Test-Path C:\BackupOfficeConfig)){
-    mkdir C:\BackupOfficeConfig > $nul
+    New-Item -ItemType Directory C:\BackupOfficeConfig > $nul
 }
 if(!$?){
     Write-host -ForegroundColor Red '[*] Error creating Backup directory'
@@ -45,7 +45,7 @@ if(!$?){
     exit
 }
 
-#Politicas de Office en el ámbito de la maquina la máquina
+# Politicas de Office en el ámbito de la maquina
 $RegKey = 'HKLM:\Software\Policies\Microsoft\Office'
 New-Item -Path $RegKey -Force | Out-Null
 $RegKey = 'HKLM:\Software\Policies\Microsoft\Office\16.0'
@@ -55,11 +55,12 @@ New-Item -Path $RegKey -Force | Out-Null
 # Deshabilita VBA para las aplicaciones de Office 
 Set-ItemProperty $RegKey -Name 'VBAOFF' -Value '1' -Force | Out-Null
 
-foreach($key in $SIDS.Keys){
-    $key
+
+$SIDs = Get-SIDs
+foreach($key in $SIDs.Keys){   
     $UserName = $key
     $Sid = $SIDS[$UserName]
-    $Sid
+    "$key $Sid"
 
     $exist = Test-Path -Path "Registry::HKEY_USERS\$Sid"
     if(!$exist){
@@ -73,23 +74,20 @@ foreach($key in $SIDS.Keys){
         continue
     }
 
-    # Hacer backups. Si un backup falla no sigue
+    # Hacer backups de las claves del registro que se van a modificar
     Write-host -ForegroundColor Green "Backing up common Office settings on $UserName"
     reg export HKEY_USERS\$SID\Software\Microsoft\Office\Common C:\BackupOfficeConfig\$($Timestamp)_commonsecurity_$UserName.reg > $null
     if(!$?){
         continue
     }
-
     reg export HKEY_USERS\$SID\Software\Microsoft\Office\16.0\WEF C:\BackupOfficeConfig\$($Timestamp)_commonswef_$UserName.reg > $null
     if(!$?){
         continue
-    }
-     
+    }     
     reg export HKEY_USERS\$SID\Software\Microsoft\Office\16.0\word\Security C:\BackupOfficeConfig\$($Timestamp)_wordecurity_$UserName.reg > $null
     if(!$?){
         continue
-    }
-     
+    }     
     reg export HKEY_USERS\$SID\Software\Microsoft\Office\16.0\Excel\Security C:\BackupOfficeConfig\$($Timestamp)_excelecurity_$UserName.reg > $null 
     if(!$?){
         continue
@@ -107,14 +105,14 @@ foreach($key in $SIDS.Keys){
     $RegKey = "Registry::HKEY_USERS\$Sid\Software\Microsoft\Office\16.0\word\Security\Trusted Locations"
     # Deshabilita todas las ubicaciones de confianza
     New-ItemProperty -Path $RegKey -Name 'AllLocationsDisabled' -Value '1' -PropertyType DWORD -Force | Out-Null 
-    #Permitir localizaciones de red
+    #No permitir localizaciones de red
     New-ItemProperty -Path $RegKey -Name 'allownetworklocations' -Value '0' -PropertyType DWORD -Force | Out-Null
      
     # Documentos de confianza
     $RegKey = "Registry::HKEY_USERS\$Sid\Software\Microsoft\Office\16.0\word\Security\trusted documents"
     # Deshbilitar documentos de confianza de la red interna
     New-ItemProperty -Path $RegKey -Name 'disablenetworktrusteddocuments' -Value '1' -PropertyType DWORD -Force | Out-Null
-    # ?
+    # Deshabilita la edicion en vista protegida
     New-ItemProperty -Path $RegKey -Name 'disableeditfrompv' -Value '1' -PropertyType DWORD -Force | Out-Null
     # Deshabilitar todos documentos de confianza
     New-ItemProperty -Path $RegKey -Name 'DisableTrustedDocuments' -Value '1' -PropertyType DWORD -Force | Out-Null
@@ -139,12 +137,15 @@ foreach($key in $SIDS.Keys){
     New-ItemProperty -Path $RegKey -Name 'vbadigsigtrustedpublishers' -Value '0' -PropertyType DWORD -Force | Out-Null
     # Bloquear la ejecución desde ficheros que provienen desde internet
     New-ItemProperty -Path $RegKey -Name 'blockcontentexecutionfrominternet' -Value '1' -PropertyType DWORD -Force | Out-Null
-    # ?
+    # Denegar VBA de documentos de de publicadores de confianza
     New-ItemProperty -Path $RegKey -Name 'vbadigsigtrustedpublishers' -Value '0' -PropertyType DWORD -Force | Out-Null
 
-    # Bloquea ficheros Word 2003
+    
+    # Configuracion de bloqueo de archivos 
+    # Se boquean todos los formatos que no se recibirian de forma natural
     $RegKey = "Registry::HKEY_USERS\$Sid\Software\Microsoft\Office\16.0\word\Security\fileblock"
     New-Item -Path $RegKey -Force | Out-Null
+    # Bloquea ficheros Word 2003
     New-ItemProperty -Path $RegKey -Name 'word2003files' -Value '3' -PropertyType DWORD -Force | Out-Null
     # Bloquea páginas web
     New-ItemProperty -Path $RegKey -Name 'htmlfiles' -Value '3' -PropertyType DWORD -Force | Out-Null
