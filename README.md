@@ -1,2 +1,2 @@
 # hardening-office16
-Script que securiza Word y Excel
+Script que securiza Office 365 Enterprise
