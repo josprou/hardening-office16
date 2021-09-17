@@ -1,2 +1,2 @@
 # hardening-office16
-Script que securiza Office 365 Enterprise
+Script para deshabilitar las macros, el panel de "ayuda" de "Habilitar macros", y los formatos antiguos de Word y Excel.
